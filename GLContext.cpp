@@ -16,36 +16,21 @@ GLContext::GLContext() {
 		}
 	}
 
-	const char* vertexShaderSource = "#version 460 core\n"
+	vertexShaderSource = "#version 460 core\n"
 		"layout (location = 0) in vec3 aPos;\n"
 		"void main()\n"
 		"{\n"
 		"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
 		"}\0";
-	unsigned int vertexShader;
-	vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-	int  success;
-	char infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-	else {
-		std::cout << "Shader compilation successful" << std::endl;
-	}
-	const char* fragmentShaderSource = "#version 330 core\n"
+
+	fragmentShaderSource = "#version 460 core\n"
 		"out vec4 FragColor;\n"
 		"void main()\n"
 		"{\n"
 		"   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
 		"}\n\0";
-	unsigned int fragmentShader;
-	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	glCompileShader(fragmentShader);
+	unsigned int vertexShader = makeShader(vertexShaderSource, GL_VERTEX_SHADER);
+	unsigned int fragmentShader = makeShader(fragmentShaderSource, GL_FRAGMENT_SHADER);
 
 	// Create the program object and attach shaders to it
 	mShaderProgram = glCreateProgram();
@@ -54,6 +39,7 @@ GLContext::GLContext() {
 	glLinkProgram(mShaderProgram);
 
 	int shaderSuccess;
+	char infoLog[512];
 	glGetProgramiv(mShaderProgram, GL_LINK_STATUS, &shaderSuccess);
 	if (!shaderSuccess) {
 		glGetProgramInfoLog(mShaderProgram, 512, NULL, infoLog);
@@ -68,9 +54,9 @@ GLContext::GLContext() {
 
 	// The stuff to draw
 	float vertices[] = {
-	-0.5f, -0.5f, 0.0f,
-	0.5f, -0.5f, 0.0f,
-	0.0f, 0.5f, 0.0f
+		-0.5f, -0.5f, 0.0f,
+		0.5f, -0.5f, 0.0f,
+		0.0f, 0.5f, 0.0f
 	};
 
 	// VBO stores vertices and sends them to GPU all at once;
@@ -160,6 +146,26 @@ bool GLContext::makeNewWindow() {
 void GLContext::processInput(GLFWwindow* window) {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
+}
+
+unsigned int GLContext::makeShader(const char* shaderSource, unsigned int shaderType) {
+	unsigned int shader;
+	shader = glCreateShader(shaderType);
+	glShaderSource(shader, 1, &shaderSource, NULL);
+	glCompileShader(shader);
+
+	int  success;
+	char infoLog[512];
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+	if (!success) {
+		glGetShaderInfoLog(shader, 512, NULL, infoLog);
+		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+	}
+	else {
+		std::cout << "Shader compilation successful" << std::endl;
+	}
+
+	return shader;
 }
 
 void GLContext::run() {

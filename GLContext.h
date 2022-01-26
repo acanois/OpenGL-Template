@@ -25,8 +25,14 @@ private:
 
 	void processInput(GLFWwindow* window);
 
+	unsigned int makeShader(const char* shaderSource, unsigned int shaderType);
+
+	const char* vertexShaderSource { nullptr };
+	const char* fragmentShaderSource{ nullptr };
+
 	unsigned int mShaderProgram;
-	unsigned int mVBO, mVAO;
+	unsigned int mVBO { 0 };
+	unsigned int mVAO { 0 };
 
 	GLFWwindow* mWindow = nullptr;
 };
