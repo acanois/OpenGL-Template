@@ -25,6 +25,9 @@ private:
 
 	void processInput(GLFWwindow* window);
 
+	unsigned int mShaderProgram;
+	unsigned int mVBO, mVAO;
+
 	GLFWwindow* mWindow = nullptr;
 };
 
