@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <vector>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -26,6 +27,8 @@ private:
 	void processInput(GLFWwindow* window);
 
 	unsigned int makeShader(const char* shaderSource, unsigned int shaderType);
+	void makeShaderProgram(unsigned int shaderProgram, std::vector<unsigned int> shaders);
+
 
 	const char* vertexShaderSource { nullptr };
 	const char* fragmentShaderSource{ nullptr };

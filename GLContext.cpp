@@ -31,26 +31,10 @@ GLContext::GLContext() {
 		"}\n\0";
 	unsigned int vertexShader = makeShader(vertexShaderSource, GL_VERTEX_SHADER);
 	unsigned int fragmentShader = makeShader(fragmentShaderSource, GL_FRAGMENT_SHADER);
-
-	// Create the program object and attach shaders to it
-	mShaderProgram = glCreateProgram();
-	glAttachShader(mShaderProgram, vertexShader);
-	glAttachShader(mShaderProgram, fragmentShader);
-	glLinkProgram(mShaderProgram);
-
-	int shaderSuccess;
-	char infoLog[512];
-	glGetProgramiv(mShaderProgram, GL_LINK_STATUS, &shaderSuccess);
-	if (!shaderSuccess) {
-		glGetProgramInfoLog(mShaderProgram, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER_PROGRAM::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-	else {
-		std::cout << "Shader program compilation successful" << std::endl;
-	}
-
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
+	std::vector<unsigned int> shaders;
+	shaders.push_back(vertexShader);
+	shaders.push_back(fragmentShader);
+	makeShaderProgram(mShaderProgram, shaders);
 
 	// The stuff to draw
 	float vertices[] = {
@@ -166,6 +150,28 @@ unsigned int GLContext::makeShader(const char* shaderSource, unsigned int shader
 	}
 
 	return shader;
+}
+
+void GLContext::makeShaderProgram(unsigned int shaderProgram, std::vector<unsigned int> shaders) {
+	// Create the program object and attach shaders to it
+	mShaderProgram = glCreateProgram();
+	for (auto shader : shaders)
+		glAttachShader(mShaderProgram, shader);
+	glLinkProgram(mShaderProgram);
+
+	int shaderSuccess;
+	char infoLog[512];
+	glGetProgramiv(mShaderProgram, GL_LINK_STATUS, &shaderSuccess);
+	if (!shaderSuccess) {
+		glGetProgramInfoLog(mShaderProgram, 512, NULL, infoLog);
+		std::cout << "ERROR::SHADER_PROGRAM::COMPILATION_FAILED\n" << infoLog << std::endl;
+	}
+	else {
+		std::cout << "Shader program compilation successful" << std::endl;
+	}
+
+	for (auto shader : shaders)
+		glDeleteShader(shader);
 }
 
 void GLContext::run() {
