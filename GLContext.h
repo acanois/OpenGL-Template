@@ -6,6 +6,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include "ShaderManager.h"
+
 class GLContext
 {
 public:
@@ -32,6 +34,13 @@ private:
 	void makeTriangle();
 	void makeQuad();
 
+	// Metrics
+	void showMaxVertexAttribs() {
+		int nrAttributes;
+		glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
+		std::cout << "Maximum nr of vertex attributes supported: " << nrAttributes << std::endl;
+	}
+
 	const char* vertexShaderSource { nullptr };
 	const char* fragmentShaderSource{ nullptr };
 
@@ -40,6 +49,8 @@ private:
 	unsigned int mVAO { 0 };
 	unsigned int mEBO { 0 };
 
-	GLFWwindow* mWindow = nullptr;
+	GLFWwindow* mWindow { nullptr };
+
+	std::unique_ptr<ShaderManager> mShaderManager { nullptr };
 };
 

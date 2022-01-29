@@ -12,9 +12,20 @@ GLContext::GLContext() {
 			std::cout << "Window created" << std::endl;
 			if (initGlad()) {
 				std::cout << "GLAD initialized" << std::endl;
+				showMaxVertexAttribs();
 			}
 		}
 	}
+
+	// get shader paths
+	auto currentPath = std::filesystem::current_path();
+	std::cout << "current_path" << currentPath << std::endl;
+	auto vertPath = currentPath / "default_vert.glsl";
+	auto fragPath = currentPath / "default_frag.glsl";
+	mShaderManager = std::make_unique<ShaderManager>(
+		vertPath.string().c_str(),
+		fragPath.string().c_str()
+	);
 
 	// MAKE SHADERS
 	vertexShaderSource = "#version 460 core\n"
@@ -226,7 +237,8 @@ void GLContext::run() {
 		glClearColor(0.2, 0.1, 0.3, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT);
 		// draw our first triangle
-		glUseProgram(mShaderProgram);
+		//glUseProgram(mShaderProgram);
+		mShaderManager->use();
 		glBindVertexArray(mVAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
 		//glDrawArrays(GL_TRIANGLES, 0, 3);
 		
