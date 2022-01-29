@@ -29,6 +29,8 @@ private:
 	unsigned int makeShader(const char* shaderSource, unsigned int shaderType);
 	void makeShaderProgram(unsigned int shaderProgram, std::vector<unsigned int> shaders);
 
+	void makeTriangle();
+	void makeQuad();
 
 	const char* vertexShaderSource { nullptr };
 	const char* fragmentShaderSource{ nullptr };
@@ -36,6 +38,7 @@ private:
 	unsigned int mShaderProgram;
 	unsigned int mVBO { 0 };
 	unsigned int mVAO { 0 };
+	unsigned int mEBO { 0 };
 
 	GLFWwindow* mWindow = nullptr;
 };
