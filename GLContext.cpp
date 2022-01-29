@@ -27,27 +27,6 @@ GLContext::GLContext() {
 		fragPath.string().c_str()
 	);
 
-	// MAKE SHADERS
-	vertexShaderSource = "#version 460 core\n"
-		"layout (location = 0) in vec3 aPos;\n"
-		"void main()\n"
-		"{\n"
-		"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-		"}\0";
-
-	fragmentShaderSource = "#version 460 core\n"
-		"out vec4 FragColor;\n"
-		"void main()\n"
-		"{\n"
-		"   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-		"}\n\0";
-	unsigned int vertexShader = makeShader(vertexShaderSource, GL_VERTEX_SHADER);
-	unsigned int fragmentShader = makeShader(fragmentShaderSource, GL_FRAGMENT_SHADER);
-	std::vector<unsigned int> shaders;
-	shaders.push_back(vertexShader);
-	shaders.push_back(fragmentShader);
-	makeShaderProgram(mShaderProgram, shaders);
-
 	// GENERATE THE TRIANGLE ARRAYS
 	//makeTriangle();
 	makeQuad();
@@ -117,48 +96,6 @@ bool GLContext::makeNewWindow() {
 void GLContext::processInput(GLFWwindow* window) {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
-}
-
-unsigned int GLContext::makeShader(const char* shaderSource, unsigned int shaderType) {
-	unsigned int shader;
-	shader = glCreateShader(shaderType);
-	glShaderSource(shader, 1, &shaderSource, NULL);
-	glCompileShader(shader);
-
-	int  success;
-	char infoLog[512];
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(shader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-	else {
-		std::cout << "Shader compilation successful" << std::endl;
-	}
-
-	return shader;
-}
-
-void GLContext::makeShaderProgram(unsigned int shaderProgram, std::vector<unsigned int> shaders) {
-	// Create the program object and attach shaders to it
-	mShaderProgram = glCreateProgram();
-	for (auto shader : shaders)
-		glAttachShader(mShaderProgram, shader);
-	glLinkProgram(mShaderProgram);
-
-	int shaderSuccess;
-	char infoLog[512];
-	glGetProgramiv(mShaderProgram, GL_LINK_STATUS, &shaderSuccess);
-	if (!shaderSuccess) {
-		glGetProgramInfoLog(mShaderProgram, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER_PROGRAM::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-	else {
-		std::cout << "Shader program compilation successful" << std::endl;
-	}
-
-	for (auto shader : shaders)
-		glDeleteShader(shader);
 }
 
 void GLContext::makeTriangle() {
@@ -236,8 +173,7 @@ void GLContext::run() {
 		// Things to render
 		glClearColor(0.2, 0.1, 0.3, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT);
-		// draw our first triangle
-		//glUseProgram(mShaderProgram);
+		// draw the thing
 		mShaderManager->use();
 		glBindVertexArray(mVAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
 		//glDrawArrays(GL_TRIANGLES, 0, 3);
