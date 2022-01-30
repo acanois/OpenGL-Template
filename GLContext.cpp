@@ -170,19 +170,20 @@ void GLContext::run() {
 		// Process key commands
 		processInput(mWindow);
 
-		// Things to render
+		// Background Color
 		glClearColor(0.2, 0.1, 0.3, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		// draw the thing
+		// Update
 		auto timeValue = glfwGetTime();
-		auto blueValue = (sin(timeValue) / 2.f) + 0.5f;
+		auto blueValue = (sin(timeValue) * 0.5) + 0.5f;
 		auto shaderProgramId = mShaderManager->getShaderProgram();
 		auto vertexColorLocation = glGetUniformLocation(shaderProgramId, "uColor");
+
+		// Draw
 		mShaderManager->use();
-		glUniform4f(vertexColorLocation, 0.0f, blueValue, 0.0f, 1.0f);
-		glBindVertexArray(mVAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
-		//glDrawArrays(GL_TRIANGLES, 0, 3);
+		glUniform4f(vertexColorLocation, 0.0f, 0.0f, blueValue, 1.0f);
+		glBindVertexArray(mVAO); 
 		
 		// For mutliple triangles
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

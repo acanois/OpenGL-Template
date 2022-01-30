@@ -28,11 +28,9 @@ private:
 
 	void processInput(GLFWwindow* window);
 
-	unsigned int makeShader(const char* shaderSource, unsigned int shaderType);
-	void makeShaderProgram(unsigned int shaderProgram, std::vector<unsigned int> shaders);
-
 	void makeTriangle();
 	void makeQuad();
+	void makeColorInVerticesQuad();
 
 	// Metrics
 	void showMaxVertexAttribs() {
