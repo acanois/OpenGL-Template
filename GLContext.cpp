@@ -12,88 +12,24 @@ GLContext::GLContext() {
 			std::cout << "Window created" << std::endl;
 			if (initGlad()) {
 				std::cout << "GLAD initialized" << std::endl;
+				showMaxVertexAttribs();
 			}
 		}
 	}
 
-	const char* vertexShaderSource = "#version 460 core\n"
-		"layout (location = 0) in vec3 aPos;\n"
-		"void main()\n"
-		"{\n"
-		"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-		"}\0";
-	unsigned int vertexShader;
-	vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-	int  success;
-	char infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-	else {
-		std::cout << "Shader compilation successful" << std::endl;
-	}
-	const char* fragmentShaderSource = "#version 330 core\n"
-		"out vec4 FragColor;\n"
-		"void main()\n"
-		"{\n"
-		"   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-		"}\n\0";
-	unsigned int fragmentShader;
-	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	glCompileShader(fragmentShader);
+	// get shader paths
+	auto currentPath = std::filesystem::current_path();
+	std::cout << "current_path" << currentPath << std::endl;
+	auto vertPath = currentPath / "default_vert.glsl";
+	auto fragPath = currentPath / "default_frag.glsl";
+	mShaderManager = std::make_unique<ShaderManager>(
+		vertPath.string().c_str(),
+		fragPath.string().c_str()
+	);
 
-	// Create the program object and attach shaders to it
-	mShaderProgram = glCreateProgram();
-	glAttachShader(mShaderProgram, vertexShader);
-	glAttachShader(mShaderProgram, fragmentShader);
-	glLinkProgram(mShaderProgram);
-
-	int shaderSuccess;
-	glGetProgramiv(mShaderProgram, GL_LINK_STATUS, &shaderSuccess);
-	if (!shaderSuccess) {
-		glGetProgramInfoLog(mShaderProgram, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER_PROGRAM::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-	else {
-		std::cout << "Shader program compilation successful" << std::endl;
-	}
-
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
-
-	// The stuff to draw
-	float vertices[] = {
-	-0.5f, -0.5f, 0.0f,
-	0.5f, -0.5f, 0.0f,
-	0.0f, 0.5f, 0.0f
-	};
-
-	// VBO stores vertices and sends them to GPU all at once;
-	glGenVertexArrays(1, &mVAO);
-	glGenBuffers(1, &mVBO);  // Generates a buffer ID
-	// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-	glBindVertexArray(mVAO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, mVBO);  // GL_ARRAY_BUFFER is the buffer type for the VBO
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	// note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	// You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
-	// VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-	glBindVertexArray(0);
-
-	// uncomment this call to draw in wireframe polygons.
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	// GENERATE THE TRIANGLE ARRAYS
+	//makeTriangle();
+	makeQuad();
 }
 
 GLContext::~GLContext() {
@@ -143,7 +79,7 @@ bool GLContext::initGL() {
 }
 
 bool GLContext::makeNewWindow() {
-	mWindow = glfwCreateWindow(900, 900, "GL Context", nullptr, nullptr);
+	mWindow = glfwCreateWindow(1024, 768, "GL Context", nullptr, nullptr);
 	if (mWindow == nullptr) {
 		std::cout << "Failed to initialize window: " << glfwGetError << std::endl;
 		glfwTerminate();
@@ -162,18 +98,96 @@ void GLContext::processInput(GLFWwindow* window) {
 		glfwSetWindowShouldClose(window, true);
 }
 
+void GLContext::makeTriangle() {
+	float vertices[] = {
+		-0.5f, -0.5f, 0.0f,
+		0.5f, -0.5f, 0.0f,
+		0.0f, 0.5f, 0.0f
+	};
+	// VBO stores vertices and sends them to GPU all at once;
+	glGenVertexArrays(1, &mVAO);
+	glGenBuffers(1, &mVBO);  // Generates a buffer ID
+	// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
+	glBindVertexArray(mVAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, mVBO);  // GL_ARRAY_BUFFER is the buffer type for the VBO
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	// note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	// You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
+	// VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
+	glBindVertexArray(0);
+
+	// uncomment this call to draw in wireframe polygons.
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+}
+
+void GLContext::makeQuad() {
+	/** ELEMENT BUFFER OBJECTS
+	* An EBO is a buffer, just like a vertex buffer object, that stores indices that 
+	* OpenGL uses to decide what vertices to draw. This is to prevent redundant vertex
+	* definitions.
+	*/
+
+	float vertices[] = {
+		 0.5f,  0.5f, 0.0f,  // top right
+		 0.5f, -0.5f, 0.0f,  // bottom right
+		-0.5f, -0.5f, 0.0f,  // bottom left
+		-0.5f,  0.5f, 0.0f   // top left 
+	};
+	unsigned int indices[] = {  // note that we start from 0!
+		0, 1, 3,   // first triangle
+		1, 2, 3    // second triangle
+	};
+
+	// Bind the array buffer
+	glGenVertexArrays(1, &mVAO);
+	glGenBuffers(1, &mVBO);
+	glGenBuffers(1, &mEBO);
+
+	glBindVertexArray(mVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	// Bind the element buffer
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	// Set the vertex attribute pointers
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(0);
+}
+
 void GLContext::run() {
 	while (!glfwWindowShouldClose(mWindow)) {
 		// Process key commands
 		processInput(mWindow);
 
-		// Things to render
+		// Background Color
 		glClearColor(0.2, 0.1, 0.3, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT);
-		// draw our first triangle
-		glUseProgram(mShaderProgram);
-		glBindVertexArray(mVAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+
+		// Update
+		auto timeValue = glfwGetTime();
+		auto blueValue = (sin(timeValue) * 0.5) + 0.5f;
+		auto shaderProgramId = mShaderManager->getShaderProgram();
+		auto vertexColorLocation = glGetUniformLocation(shaderProgramId, "uColor");
+
+		// Draw
+		mShaderManager->use();
+		glUniform4f(vertexColorLocation, 0.0f, 0.0f, blueValue, 1.0f);
+		glBindVertexArray(mVAO); 
+		
+		// For mutliple triangles
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
 
 		// Draw
 		glfwSwapBuffers(mWindow);
