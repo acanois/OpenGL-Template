@@ -30,7 +30,9 @@ private:
 
 	void makeTriangle();
 	void makeQuad();
-	void makeColorInVerticesQuad();
+	void makeTexturedQuad();
+
+	void loadTexture(const std::string& path);
 
 	// Metrics
 	void showMaxVertexAttribs() {
@@ -39,13 +41,12 @@ private:
 		std::cout << "Maximum nr of vertex attributes supported: " << nrAttributes << std::endl;
 	}
 
-	const char* vertexShaderSource { nullptr };
-	const char* fragmentShaderSource{ nullptr };
-
 	unsigned int mShaderProgram;
 	unsigned int mVBO { 0 };
 	unsigned int mVAO { 0 };
 	unsigned int mEBO { 0 };
+
+	unsigned int mTexture { 0 };
 
 	GLFWwindow* mWindow { nullptr };
 
